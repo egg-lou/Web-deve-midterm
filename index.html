@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="night">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Holiday Calendar</title>
+    <!-- Tailwind CSS and DaisyUI -->
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@4.4.19/dist/full.css" rel="stylesheet" type="text/css" />
+    <!-- Google Fonts - Poppins -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Alpine.js -->
+    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Poppins', 'sans-serif'],
+                    },
+                },
+            },
+            daisyui: {
+                themes: ["night"],
+            },
+        }
+    </script>
+    <style>
+        .holiday-regular {
+            @apply border-error bg-error/10 hover:bg-error/20;
+        }
+        .holiday-special-non-working {
+            @apply border-warning bg-warning/10 hover:bg-warning/20;
+        }
+        .holiday-special-working {
+            @apply border-info bg-info/10 hover:bg-info/20;
+        }
+        .holiday-common-local {
+            @apply border-success bg-success/10 hover:bg-success/20;
+        }
+        .holiday-observance {
+            @apply border-secondary bg-secondary/10 hover:bg-secondary/20;
+        }
+        .holiday-season {
+            @apply border-accent bg-accent/10 hover:bg-accent/20;
+        }
+        .today {
+            @apply ring-2 ring-primary ring-offset-2 ring-offset-base-100;
+        }
+    </style>
+</head>
+<body class="min-h-screen bg-base-200">
+    <div x-data="calendar" class="container mx-auto p-4">
+        <!-- Calendar Header -->
+        <div class="card bg-base-100 shadow-xl mb-5">
+            <div class="card-body text-center">
+                <div class="flex-col md:flex justify-between items-center mb-4">
+                    <h1 class="text-4xl font-bold text-primary mb-2">Philippine Holiday Calendar</h1>
+                    <div class="flex flex-col items-center md:items-end">
+                        <div class="text-xl font-mono" x-text="currentTime"></div>
+                        <div class="text-sm text-base-content/80" x-text="currentFullDate"></div>
+                    </div>
+                </div>
+                <!-- Legend -->
+                <div class="flex flex-wrap justify-center gap-2 mb-4 text-xs">
+                    <span class="badge badge-error gap-1">Regular Holiday</span>
+                    <span class="badge badge-warning gap-1">Special Non-working</span>
+                    <span class="badge badge-info gap-1">Special Working</span>
+                    <span class="badge badge-success gap-1">Common Local</span>
+                    <span class="badge badge-secondary gap-1">Observance</span>
+                    <span class="badge badge-accent gap-1">Season</span>
+                </div>
+                <div class="flex justify-center items-center space-x-4">
+                    <h2 class="text-2xl font-semibold" x-text="currentMonthYear"></h2>
+                </div>
+            </div>
+        </div>
+
+        <!-- Calendar Grid -->
+        <div class="card bg-base-100 shadow-xl">
+            <div class="card-body p-2 sm:p-6">
+                <!-- Days of Week -->
+                <div class="grid grid-cols-7 gap-1 sm:gap-2 mb-4">
+                    <template x-for="day in daysOfWeek" :key="day">
+                        <div class="text-center font-semibold text-base-content/70 text-sm sm:text-base" x-text="day"></div>
+                    </template>
+                </div>
+
+                <!-- Calendar Days -->
+                <div class="grid grid-cols-7 gap-1 sm:gap-2">
+                    <template x-for="day in calendarDays" :key="day.date">
+                        <div 
+                            :class="{
+                                'opacity-50': !day.isCurrentMonth,
+                                'hover:bg-base-200': !day.hasHoliday,
+                                'cursor-pointer': day.hasHoliday,
+                                'holiday-regular': day.hasHoliday && day.holiday.type === 'Regular Holiday',
+                                'holiday-special-non-working': day.hasHoliday && day.holiday.type === 'Special Non-working Holiday',
+                                'holiday-special-working': day.hasHoliday && day.holiday.type === 'Special Working Day',
+                                'holiday-common-local': day.hasHoliday && day.holiday.type === 'Common Local Holiday',
+                                'holiday-observance': day.hasHoliday && day.holiday.type === 'Observance',
+                                'holiday-season': day.hasHoliday && day.holiday.type === 'Season',
+                                'ring-2 ring-primary ring-offset-2 ring-offset-base-100 bg-primary/5': day.isToday
+                            }"
+                            class="relative p-1 sm:p-2 min-h-[60px] sm:min-h-[80px] border rounded-lg transition-all duration-200 bg-base-100"
+                            @click="day.hasHoliday && showHolidayDetails(day.holiday)"
+                        >
+                            <div class="flex justify-between items-start">
+                                <span class="badge badge-xs" x-text="day.dayNumber"></span>
+                                <template x-if="day.hasHoliday">
+                                    <span 
+                                        :class="{
+                                            'badge-error': day.holiday.type === 'Regular Holiday',
+                                            'badge-warning': day.holiday.type === 'Special Non-working Holiday',
+                                            'badge-info': day.holiday.type === 'Special Working Day',
+                                            'badge-success': day.holiday.type === 'Common Local Holiday',
+                                            'badge-secondary': day.holiday.type === 'Observance',
+                                            'badge-accent': day.holiday.type === 'Season'
+                                        }"
+                                        class="badge badge-xs"
+                                    ></span>
+                                </template>
+                            </div>
+                            <template x-if="day.hasHoliday">
+                                <div class="mt-1 text-xs sm:text-sm text-base-content/90 line-clamp-2" x-text="day.holiday.name"></div>
+                            </template>
+                        </div>
+                    </template>
+                </div>
+                <div class="flex justify-end gap-2 mt-4">
+                    <button @click="goToToday()" class="btn btn-secondary btn-sm">Today</button>
+                    <button @click="previousMonth" class="btn btn-primary btn-sm">&lt; Previous</button>
+                    <button @click="nextMonth" class="btn btn-primary btn-sm">Next &gt;</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="calendar.js"></script>
+</body>
+</html>
