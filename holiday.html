@@ -36,6 +36,9 @@
                 
                 <template x-if="holiday">
                     <div class="space-y-6">
+                        <div class="w-full rounded-lg overflow-hidden shadow-lg">
+                            <img :src="getImagePath(holiday.imageUrl)" :alt="holiday.name" class="w-full h-auto object-contain" @error="$el.src = 'https://placehold.co/600x400/374151/ffffff?text=No+Image'">
+                        </div>
                         <div class="flex flex-col gap-2">
                             <div class="flex items-center gap-3">
                                 <span class="text-lg font-semibold">Date:</span>
@@ -87,10 +90,15 @@
         document.addEventListener('alpine:init', () => {
             Alpine.data('holidayDetails', () => ({
                 holiday: null,
+                getImagePath(imagePath) {
+                    const fullPath = `${imagePath}`;
+                    return fullPath;
+                },
                 async init() {
                     // Get holiday ID from URL
                     const urlParams = new URLSearchParams(window.location.search);
                     const monthDay = urlParams.get('date');
+                    console.log('URL date parameter:', monthDay);
                     if (monthDay) {
                         await this.loadHoliday(monthDay);
                     }
@@ -101,7 +109,7 @@
                         const data = await response.json();
                         this.holiday = data.holidays.find(h => h.monthDay === monthDay);
                     } catch (error) {
-                        console.error('Error loading holiday:', error);
+                        console.error('Error loading holiday data:', error);
                     }
                 },
                 formatDate(monthDay) {
